@@ -7,6 +7,7 @@ const fs = require("fs");
 
 
 
+
 class UserController {
     async list(req, res, next){
         try {
@@ -99,9 +100,22 @@ class UserController {
     }
 
     async update(req, res, next){
-        try {
-            //
-        } catch (err) {
+        try{
+            let user = await User.findById(req.params.id);
+            if(!user){
+                return res
+                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {}));
+            }
+            user = await User.findByIdAndUpdate(req.params.id, req.body, {
+                new: true,
+                runValidators: true,
+                useUnified: false
+            });
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, user));
+        } catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
@@ -134,6 +148,35 @@ class UserController {
 
     async changePassword(req, res, next){
         try {
+            const { slug, oldPassword, newPassword, confirmPassword} = req.body;
+            const validate = new Validator(req.body, {
+                oldPassword: "string",
+                newPassword: "string",
+                confirmPassword: "string"
+            });
+            if(validate.fails()){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send()
+            }
+            if(newPassword != confirmPassword){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {}))
+            }
+            const exist = await User.findOne({
+                slug: slug,
+            });
+            const checkPass = await bcrypt.compare(oldPassword, exist.password);
+            if(!checkPass){
+                return res
+                    .status(ERROR_LIST.HTTP_UNAUTHORIZED)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNAUTHORIZED, {}));
+            }
+            exist.password = newPassword;
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success("Password Changed successfully", {}));
 
         } catch (err) {
             return res
@@ -168,9 +211,26 @@ class UserController {
         }
     }
 
-    async unblockUser(req, res, next){
+    async unblockUser(req, res, next) {
         try {
             //
+            const user = await User.findOne({
+                name: req.query.username,
+            });
+            if (!user) {
+                return res
+                    .status(ERROR_LIST.HTTP_OK)
+                    .send(ResponseStatus.failure("User not found.", {}));
+            }
+            if (user.accountStatus === "Active") {
+                return res
+                    .status(ERROR_LIST.HTTP_OK)
+                    .send(ResponseStatus.failure("User already unblocked", user));
+            }
+            user.accountStatus = "Active";
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success("User unblocked succssfully", user));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
