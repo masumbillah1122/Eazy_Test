@@ -67,9 +67,7 @@ class VendorController{
             });
             /*
             const validatorBank = new Validator(req.body, {
-
             })
-
              */
 
             if(validator.fails()){
@@ -178,3 +176,5 @@ class VendorController{
     // }
 
 }
+
+module.exports = new VendorController();
