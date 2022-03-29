@@ -26,7 +26,7 @@ class authorController {
     }
     async show(req, res, next){
         try {
-            const validate = new Validator(req.body, {
+            const validate = new Validator(req.query, {
                 slug: "string",
             });
             if (validate.fails()){
@@ -34,7 +34,7 @@ class authorController {
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
-            const author = await Author.findOne({slug: req.body.slug});
+            const author = await Author.findOne({slug: req.query.slug});
             if (!author){
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
