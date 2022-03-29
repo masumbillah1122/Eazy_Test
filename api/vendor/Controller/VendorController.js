@@ -65,10 +65,10 @@ class VendorController{
                 secondaryKeyAccountManager: "string | required",
                 role: "string",
             });
-            /*
-            const validatorBank = new Validator(req.body, {
-            })
-             */
+            
+            // const validatorBank = new Validator(req.body, {
+            // })
+             
 
             if(validator.fails()){
                 return res

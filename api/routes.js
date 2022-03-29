@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+
+const AdminRoute = require("./admin/routes/index");
 const UserRoute = require("./User/Route/index");
 const BrandRoute = require("./brand/routes/index");
 const SubCategoryRoute = require("./SubCategory/Route/index");
@@ -8,6 +10,7 @@ const LeafCategoryRoute = require("./leafCategory/Route/index");
 const ProductRoute = require("./product/Route/index");
 
 
+router.use('/admin', AdminRoute);
 router.use('/users', UserRoute);
 router.use('/brand', BrandRoute);
 router.use('/subCategory', SubCategoryRoute);
