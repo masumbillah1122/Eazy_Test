@@ -1,11 +1,11 @@
 const { Schema, model } = require('mongoose');
 
 const adminSchema = new Schema({
-    // userId: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: "User",
-    //     required: true
-    // },
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
     // role: {
     //     type: Schema.Types.ObjectId,
     //     ref: "Role",

@@ -8,9 +8,9 @@ const mongoose = require("mongoose");
 class AdminController{
     async Index(req, res, next){
         try{
-            const admins = await Admin.find()
-                // .populate()
-                // .exec();
+            const admins = await Admin.find({_id: mongoose.Types.ObjectId(req.params.id)}) 
+                .populate("Uaer")
+                .exec();
             if(!admins.length){
                 return res
                 .status(ERROR_LIST.HTTP_OK)
@@ -29,8 +29,8 @@ class AdminController{
     async Show(req, res, next){
         try{
             const admin = await Admin.findById({_id: mongoose.Types.ObjectId(req.params.id)}) 
-                // .populate()
-                // .exec();
+                .populate("userId")
+                .exec();
             if(admin){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
