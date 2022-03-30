@@ -49,6 +49,12 @@ class LeafCategoryController{
                 bnName: "min:2|max:200"
             });
             if(validate.fails()){
+                if(!req.file){
+                    validator.errors.errors.image = ["Image is required"];
+                };
+                if(!req.file){
+                    validator.errors.errors.banner = ["Banner is required"];
+                };
                 return res
                     .status(ERROR_LIST.HTTP_OK)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
@@ -60,6 +66,12 @@ class LeafCategoryController{
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {
                         msg: "Leaf Category already exist."
                     }));
+            }
+            if(req.file){
+                req.body.image = req.file.path;
+            }
+            if(req.file){
+                req.body.banner = req.file.path;
             }
             let create = new LeafCategory({
                 ...req.body

@@ -3,7 +3,7 @@ const ERROR_MESSAGE = require("../../helpers/errorMessage");
 const ResponseStatus = require("../../helpers/responseStatus");
 const Validator = require('validatorjs');
 const User = require('../../models/User');
-const { HTTP_OK } = require("../../helpers/errorList");
+
 
 class UserController {
     async list(req, res, next){
@@ -43,6 +43,7 @@ class UserController {
 
     async create(req, res, next){
         try {
+            //req.file = files;
             const validator = new Validator(req.body, {
                 name: "string|min:5|max:50",
                 email: "email",
@@ -54,9 +55,9 @@ class UserController {
                 password: "required|min:6",
             });
             if(validator.fails()){
-                // if(!req.file){
-                //     validator.errors.errors.image = ["Image is required"];
-                // }
+                if(!req.file){
+                    validator.errors.errors.image = ["Image is required"];
+                }
                 return res
                     .status(ERROR_LIST.HTTP_OK)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validator.errors.errors));
