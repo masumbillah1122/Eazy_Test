@@ -69,9 +69,6 @@ class UserController {
                 password: "required|min:6",
             });
             if(validator.fails()){
-                // if(!req.file){
-                //     validator.errors.errors.image = ["Image is required"];
-                // }
                 return res
                     .status(ERROR_LIST.HTTP_OK)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validator.errors.errors));

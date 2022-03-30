@@ -41,7 +41,7 @@ class ProductController{
         try {
             //req.files
             const validate = new Validator(req.body, {
-                name: "required|min:2|max:200|alpha",
+                name: "string",
                 bnName: "min:2|max:200"
             });
             if(validate.fails()){
@@ -57,6 +57,9 @@ class ProductController{
                         msg: "Product already exist."
                     }));
             }
+            if(req.file){
+                req.body.coverImage = req.file.path;
+            }
             let create = new Product({
                 ...req.body
             });
@@ -67,10 +70,7 @@ class ProductController{
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(
-                    ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
-                    err
-                ));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
     async update(req, res, next){

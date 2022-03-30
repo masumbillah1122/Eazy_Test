@@ -54,29 +54,26 @@ class category {
 
     async create(req, res, next){
         try{
-            const validate = new Validator(req.body,{
-                name: "string | max: 50",
+            const validate = new Validator(req.body, {
+                name: "string",
                 bnName: "string",
-                slug: "string",
-                image: "string",
-                banner: "string",
-                //subCategories array object id
-                //products array object id
-                isActive: "boolean",
-                indexId: "numeric",
-
+                slug: "string"
             });
             if(validate.fails()){
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
-            const exist = await Category.findOne({slug: req.b.slug});
+            const exist = await Category.findOne({name: req.body.name, bnName: req.body.bnName, slug: req.body.slug});
             if(exist){
                 return res
-                    .status(ERROR_LIST.HTTP_ACCEPTED)
-                    .send(ResponseStatus.failure("Category already exist", exist));
+                    .status(ERROR_LIST.HTTP_OK)
+                    .send(ResponseStatus.success("Category already exist", exist));
             }
+            // if(req.file){
+            //     req.body.image = req.file.path;
+            //     req.body.banner = req.file.path;
+            // }
             let create = new Category({
                 ...req.body
             });

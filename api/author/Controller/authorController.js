@@ -106,7 +106,6 @@ class authorController {
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
-
     async remove(req, res, next){
         try {
             const author = await Author.findOne({

@@ -8,7 +8,7 @@ const mongoose = require("mongoose");
 class AdminController{
     async Index(req, res, next){
         try{
-            const admins = await Admin.find() 
+            const admins = await Admin.find()
                 // .populate()
                 // .exec();
             if(!admins.length){

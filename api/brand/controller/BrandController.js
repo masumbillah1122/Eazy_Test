@@ -50,6 +50,10 @@ class BrandController{
                     .status(ERROR_LIST.HTTP_OK)
                     .send(ResponseStatus.success("Brand already exist", exist));
             }
+            // if(req.file){
+            //     req.body.image = req.file.path;
+            //     req.body.banner = req.file.path;
+            // }
             let create = new Brand({
                 ...req.body
             });
