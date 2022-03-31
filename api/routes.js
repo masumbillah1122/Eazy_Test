@@ -9,6 +9,7 @@ const CategoryRoute =require("./category/routes/index")
 const LeafCategoryRoute = require("./leafCategory/Route/index");
 const ProductRoute = require("./product/Route/index");
 const authorRouter = require("./author/Route/index");
+const RoleRouter = require("./Role/Route/index");
 
 router.use('/admin', AdminRoute);
 router.use('/users', UserRoute);
@@ -18,5 +19,6 @@ router.use('/Category', CategoryRoute);
 router.use('/leafCategory', LeafCategoryRoute);
 router.use('/product', ProductRoute);
 router.use('/author', authorRouter);
+router.use('/role', RoleRouter);
 
 module.exports = router;
