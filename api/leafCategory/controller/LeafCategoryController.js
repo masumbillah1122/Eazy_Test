@@ -49,17 +49,23 @@ class LeafCategoryController{
                 bnName: "min:2|max:200"
             });
             if(validate.fails()){
+<<<<<<< HEAD
                 if(!req.file){
                     validator.errors.errors.image = ["Image is required"];
                 };
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+=======
+                return res
+                    .status(ERROR_LIST.HTTP_OK)
+>>>>>>> c32fb64e8d5a4efc0d53bbb136d4a6b4328bca6e
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
             const exist = await LeafCategory.findOne({name: req.body.name, bnName: req.body.bnName});
             if(exist){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
+<<<<<<< HEAD
                     .send(ResponseStatus.failure({
                         msg: "Leaf Category already exist."
                     }));
@@ -67,6 +73,12 @@ class LeafCategoryController{
             if(req.file){
                 req.body.image = req.file.path;
             }
+=======
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {
+                        msg: "Leaf Category already exist."
+                    }));
+            }
+>>>>>>> c32fb64e8d5a4efc0d53bbb136d4a6b4328bca6e
             let create = new LeafCategory({
                 ...req.body
             });
