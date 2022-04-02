@@ -10,7 +10,7 @@ class SubCategoryController{
             const Category = await SubCategory.find();
             if(!Category.length){
                 return res
-                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
                     .send(ResponseStatus.failure(ERROR_LIST.HTTP_NO_CONTENT));
             }
             return res
@@ -38,7 +38,7 @@ class SubCategoryController{
             });
             if(!exist){
                 return res
-                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
                     .send(ResponseStatus.failure("SubCategory not found", {}));
             }
             return res
@@ -98,6 +98,23 @@ class SubCategoryController{
 
     async update(req, res, next){
         try{
+            const validate = new Validator(req.body, {
+                name: "string",
+                bnName: "string",
+                slug: "string",
+                image: "string",
+                banner: "string",
+                //leafCategories array from another object
+                //products array from another object
+                isActive: "boolean",
+                indexId: "numeric",
+                //discount object
+            });
+            if(validate.fails()){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
+            }
             let subCategory = await SubCategory.findById(req.params.id);
             if(!subCategory){
                 return res
@@ -110,7 +127,7 @@ class SubCategoryController{
                 useUnified: false
             });
             return  res.status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, subCategory));
+                .send(ResponseStatus.success("Subcategory update successfully", subCategory));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -123,7 +140,7 @@ class SubCategoryController{
             const subCategory = await SubCategory.findById(req.params.id);
             if(!subCategory){
                 return res
-                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
                     .send(ResponseStatus.failure("Sub-Category is not found with this id.", {}));
             }
             await subCategory.remove();

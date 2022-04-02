@@ -3,6 +3,7 @@ const ERROR_MESSAGE = require("../../helpers/errorMessage");
 const ResponseStatus = require("../../helpers/responseStatus");
 const Validator = require('validatorjs');
 const User = require('../../models/User');
+const fs = require("fs");
 
 class UserController {
     async list(req, res, next){
@@ -10,7 +11,7 @@ class UserController {
             const users = await User.find();
             if(!users.length){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT))
             }
             return res
@@ -26,13 +27,14 @@ class UserController {
     async show(req, res, next){
         try {
             const user = await User.findById(req.params.id);
-            if(user){
+            if(!user){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK,
-                         user
-                         ));
-            } 
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT, {}));
+            }
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, user));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -54,9 +56,6 @@ class UserController {
                 password: "required|min:6",
             });
             if(validator.fails()){
-                if(!req.file){
-                    validator.errors.errors.image = ["Image is required"];
-                }
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validator.errors.errors));
@@ -64,8 +63,8 @@ class UserController {
             const exist = await User.findOne({phone: req.body.phone});
             if(exist){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {msg: "User already exist with this phone number."}));
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("User already exist with this phone number.", exist));
             }
             if(req.file){
                 req.body.image = req.file.path;
@@ -77,7 +76,7 @@ class UserController {
             await newUser.save();
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, newUser));
+                .send(ResponseStatus.success("User created Successfully", newUser));
        } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -87,11 +86,26 @@ class UserController {
 
     async update(req, res, next){
         try {
+            const validator = new Validator(req.body, {
+                name: "string|min:5|max:50",
+                email: "email",
+                phone: "alpha_num",
+                gender: "alpha",
+                maritalStatus: "alpha",
+                dob: "date",
+                addresses: "array",
+                password: "min:6",
+            });
+            if(validator.fails()){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validator.errors.errors));
+            }
             let user = await User.findById(req.params.username);
             if(!user){
                 return res
-                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {}));
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .send(ResponseStatus.failure("No user found", {}));
             }
             user = await User.findByIdAndUpdate(req.params.username, req.body, {
                 new: true,
@@ -100,7 +114,7 @@ class UserController {
             });
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, user));
+                .send(ResponseStatus.success("User update successfully", user));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -113,6 +127,9 @@ class UserController {
             const user = await User.findById(req.params.id);
             if(!user){
                 return res.status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR).send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {msg: "User is not found with this id."}));
+            }
+            if(fs.existsSync(user.image)){
+                fs.unlinkSync(user.image);
             }
             await user.remove();
             return res.status(ERROR_LIST.HTTP_OK).send(ResponseStatus.success({
@@ -167,7 +184,23 @@ class UserController {
 
     async blockUser(req, res, next){
         try {
-            //
+            const user = await User.findOne({
+                name: req.query.username,
+            });
+            if(!user){
+                return res
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .send(ResponseStatus.failure("User not found", {}));
+            }
+            if(user.accountStatus === "Deactivate" ){
+                return res
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("User already blocked", user));
+            }
+            user.accountStatus = "Deactivate";
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success("user blocked successfully", user));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -182,18 +215,18 @@ class UserController {
             });
             if(!user){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
                     .send(ResponseStatus.failure("User not found.", {} ));
             }
             if(user.accountStatus === "Active"){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("User already unblocked", user));
             }
             user.accountStatus = "Active";
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success("User unblocked succssfully", user));
+                .send(ResponseStatus.success("User unblocked successfully", user));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)

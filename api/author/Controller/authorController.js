@@ -12,7 +12,7 @@ class authorController {
             const author = await Author.find();
             if(!author.length){
                 return res
-                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT));
             }
             return res
@@ -37,7 +37,7 @@ class authorController {
             const author = await Author.findOne({slug: req.query.slug});
             if (!author){
                 return res
-                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .status(ERROR_LIST.HTTP_NOT_FOUND)
                     .send(ResponseStatus.failure("Author not found", {}));
             }
             return res
@@ -62,7 +62,7 @@ class authorController {
             });
             if (!validate) {
                 return res
-                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
             const exist = await Author.findOne({slug: req.body.slug});
@@ -113,7 +113,7 @@ class authorController {
             });
             if(!author){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
                     .send(ResponseStatus.failure("User not found", {}));
             }
             if(fs.existsSync(Author.image)){

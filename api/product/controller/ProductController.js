@@ -11,7 +11,7 @@ class ProductController{
             const products = await Product.find();
             if(!products.length){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT));
             }
             return res
@@ -53,9 +53,7 @@ class ProductController{
             if(exist){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.failure({
-                        msg: "Product already exist."
-                    }));
+                    .send(ResponseStatus.failure("Product already exist.", exist));
             }
             let create = new Product({
                 ...req.body
@@ -63,14 +61,11 @@ class ProductController{
              await create.save();
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, create));
+                    .send(ResponseStatus.success("product created successfully", create));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(
-                    ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
-                    err
-                ));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
     async update(req, res, next){
@@ -88,7 +83,8 @@ class ProductController{
             });
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, product));
+                .send(ResponseStatus.success("product update successfully", product));
+
         } catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -96,18 +92,18 @@ class ProductController{
         }
     }
     async remove(req, res, next){
-        try{
+        try {
             const product = await Product.findById(req.params.id);
-            if(!product){
+            if (!product) {
                 return res
                     .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure({ msg: "Product is not found with this id" }));
+                    .send(ResponseStatus.failure("Product is not found with this id", {}));
             }
             await product.remove();
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, product));
-        } catch(err){
+                .send(ResponseStatus.success("product remove successfully", {}));
+        }catch (err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));

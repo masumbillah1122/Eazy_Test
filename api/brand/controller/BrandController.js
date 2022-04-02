@@ -52,16 +52,14 @@ class BrandController{
             });
             if(validate.fails()){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
             const exist = await Brand.findOne({name: req.body.name, bnName: req.body.bnName});
             if(exist){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {
-                        msg: "Brand already exist."
-                    }));
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("Brand already exist.", exist));
             }
             let create = new Brand({
                 ...req.body
@@ -73,10 +71,7 @@ class BrandController{
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(
-                    ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
-                    err
-                ));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
     async update(req, res, next){
@@ -85,8 +80,8 @@ class BrandController{
             let brand = await Brand.findById(req.params.id);
             if(!brand){
                 return res
-                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {}));
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT, {}));
             }
             brand = await Brand.findByIdAndUpdate(req.params.id, req.body, {
                 new: true,
@@ -99,10 +94,7 @@ class BrandController{
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(
-                    ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
-                    err
-                ));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
     async remove(req, res, next){
@@ -112,21 +104,16 @@ class BrandController{
             if(!brand){
                 return res
                     .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure({
-                        msg: "Brand is not found with this id."
-                    }));
+                    .send(ResponseStatus.failure("Brand is not found with this id.", {}));
             }
             await brand.remove();
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, brand));
+                .send(ResponseStatus.success("Brand remove successfully", brand));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(
-                    ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
-                    err
-                ));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
 }

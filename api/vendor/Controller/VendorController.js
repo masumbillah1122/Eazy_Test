@@ -83,7 +83,7 @@ class VendorController{
             if(exist){
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_ACCEPTED, {msg: "vendor already exist with this slug"}));
+                    .send(ResponseStatus.failure("vendor already exist with this slug", exist));
             }
             const newVendor = new Vendor({
                 ...req.body
@@ -94,7 +94,6 @@ class VendorController{
                 .status(ERROR_LIST.HTTP_OK)
                 .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, newVendor));
         }catch (err) {
-            console.log("done2");
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));

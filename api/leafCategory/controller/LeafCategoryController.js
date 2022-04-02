@@ -14,7 +14,7 @@ class LeafCategoryController{
                 .exec();
             if(!leafCategories.length){
                 return res
-                .status(ERROR_LIST.HTTP_OK)
+                .status(ERROR_LIST.HTTP_NO_CONTENT)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT));
             }
             return res
@@ -31,11 +31,14 @@ class LeafCategoryController{
             const leafCategory = await LeafCategory.findById({_id: mongoose.Types.ObjectId(req.params.id)}) 
                 .populate('products')
                 .exec();
-            if(leafCategory){
+            if(!leafCategory){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, leafCategory));
+                    .status(ERROR_LIST.HTTP_NOT_FOUND)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NOT_FOUND));
             }
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, leafCategory));
         } catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -49,24 +52,15 @@ class LeafCategoryController{
                 bnName: "min:2|max:200"
             });
             if(validate.fails()){
-
-                if(!req.file){
-                    validator.errors.errors.image = ["Image is required"];
-                };
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-
-                return res
-                    .status(ERROR_LIST.HTTP_OK)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
             const exist = await LeafCategory.findOne({name: req.body.name, bnName: req.body.bnName});
             if(exist){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.failure({
-                        msg: "Leaf Category already exist."
-                    }));
+                    .send(ResponseStatus.failure("Leaf Category already exist.", exist));
             }
             if(req.file){
                 req.body.image = req.file.path;
@@ -77,7 +71,7 @@ class LeafCategoryController{
              await create.save();
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, create));
+                    .send(ResponseStatus.success("Leaf Category created successfully", create));
         } catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -86,11 +80,20 @@ class LeafCategoryController{
     }
     async update(req, res, next){
         try{
+            const validate = new Validator(req.body, {
+                name: "|min:2|max:200|alpha",
+                bnName: "min:2|max:200"
+            });
+            if(validate.fails()){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
+            }
             let leafCategory = await LeafCategory.findById(req.params.id);
             if(!leafCategory){
                 return res
-                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {}));
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT, {}));
             }
             leafCategory = await LeafCategory.findByIdAndUpdate(req.params.id, req.body, {
                 new: true,
@@ -99,7 +102,7 @@ class LeafCategoryController{
             });
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, leafCategory));
+                .send(ResponseStatus.success("leafCategory updated successfully", leafCategory));
         } catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -112,14 +115,12 @@ class LeafCategoryController{
             if(!leafCategory){
                 return res
                     .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure({
-                        msg: "Leaf Category is not found with this id."
-                    }));
+                    .send(ResponseStatus.failure("Leaf Category is not found with this id.", {}));
             }
             await leafCategory.remove();
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, leafCategory));
+                .send(ResponseStatus.success("leafCategory remove successfully", leafCategory));
         } catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
