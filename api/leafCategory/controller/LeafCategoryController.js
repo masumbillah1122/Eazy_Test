@@ -52,26 +52,20 @@ class LeafCategoryController{
                 if(!req.file){
                     validator.errors.errors.image = ["Image is required"];
                 };
-                if(!req.file){
-                    validator.errors.errors.banner = ["Banner is required"];
-                };
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
             const exist = await LeafCategory.findOne({name: req.body.name, bnName: req.body.bnName});
             if(exist){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {
+                    .send(ResponseStatus.failure({
                         msg: "Leaf Category already exist."
                     }));
             }
             if(req.file){
                 req.body.image = req.file.path;
-            }
-            if(req.file){
-                req.body.banner = req.file.path;
             }
             let create = new LeafCategory({
                 ...req.body

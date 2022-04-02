@@ -46,14 +46,14 @@ class ProductController{
             });
             if(validate.fails()){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
             const exist = await Product.findOne({name: req.body.name, bnName: req.body.bnName});
             if(exist){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {
+                    .send(ResponseStatus.failure({
                         msg: "Product already exist."
                     }));
             }
