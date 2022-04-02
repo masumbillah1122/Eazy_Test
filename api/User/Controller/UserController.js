@@ -42,11 +42,7 @@ class UserController {
 
     async create(req, res, next){
         try {
-<<<<<<< HEAD
             //req.file = files;
-=======
-            const {name, email} = req.body;
->>>>>>> fd086659318812a60f93d20f5079d3341472ba2b
             const validator = new Validator(req.body, {
                 name: "string|min:5|max:50",
                 email: "email",
