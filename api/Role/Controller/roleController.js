@@ -5,13 +5,39 @@ const Role = require("../../models/Role");
 const Validator = require('validatorjs');
 const Product = require("../../models/Product");
 
+const permissions = [
+        "all",
+        "admin",
+        "profile",
+        "shipping",
+        "report",
+        "deactivated",
+        "product",
+        "brand",
+        "category",
+        "banner",
+        "dashboard",
+        "order",
+        "addsense",
+        "subscriber",
+        "customer",
+        "rating-review",
+        "university",
+        "vendor",
+        "coupon",
+        "campaign",
+        "refund",
+        "options",
+        "role"
+    ]
+
 class roleController {
     async list(req, res, next){
         try{
             const role = await Role.find();
             if(!role.length){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT));
             }
             return res
@@ -27,15 +53,37 @@ class roleController {
         try {
             //req.files
             const validate = new Validator(req.body, {
-                type: "string",
-                permissions: "string"
+                role: "string",
+                permissions: "array"
             });
+            let bool = false;
+            let i, j;
+            const Permissions  = req.body.permissions;
+            for(i = 0; i < Permissions.length; i++)
+            {
+                if(i == 0 || bool == true)
+                {
+                    for(j = 0; j < permissions.length; j++ ){
+                        if(Permissions[i] == permissions[j]){
+                            bool = true;
+                            break;
+                        }
+                        else
+                            bool = false;
+                    }
+                }
+            }
+            if(bool == false){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY,{}));
+            }
             if(validate.fails()){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
-            const exist = await Role.findOne({type: req.body.type});
+            const exist = await Role.findOne({role: req.body.type});
             if(exist){
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
@@ -48,7 +96,7 @@ class roleController {
             if (!create){
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
-                    .send(ResponseStatus.failure("Role not created successfully", {}));
+                    .send(ResponseStatus.failure("Role dose not created successfully", {}));
             }
             return res
                 .status(ERROR_LIST.HTTP_OK)
@@ -61,6 +109,16 @@ class roleController {
     }
     async update(req, res, next){
         try{
+            const validate = new Validator(req.body, {
+                role: "string",
+                permissions: "array"
+            });
+            if(validate.fails()){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
+            }
+
             let role = await Role.findById(req.params.id);
             if(!role){
                 return res

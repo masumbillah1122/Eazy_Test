@@ -47,8 +47,8 @@ class AdminController{
         try{
             
             const validate = new Validator(req.body, {
-                //userId: "required|min:8|max:200",
-                //role: "min:10|max:1000",
+                username: "required|min:8|max:200",
+                // role: "min:10|max:1000",
                 status: "min:2|max:100"
             });
             if(validate.fails()){
