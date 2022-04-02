@@ -4,7 +4,6 @@ const ResponseStatus = require("../../helpers/responseStatus");
 const Validator = require('validatorjs');
 const User = require('../../models/User');
 
-
 class UserController {
     async list(req, res, next){
         try {
@@ -43,7 +42,11 @@ class UserController {
 
     async create(req, res, next){
         try {
+<<<<<<< HEAD
             //req.file = files;
+=======
+            const {name, email} = req.body;
+>>>>>>> fd086659318812a60f93d20f5079d3341472ba2b
             const validator = new Validator(req.body, {
                 name: "string|min:5|max:50",
                 email: "email",
@@ -59,7 +62,7 @@ class UserController {
                     validator.errors.errors.image = ["Image is required"];
                 }
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validator.errors.errors));
             }
             const exist = await User.findOne({phone: req.body.phone});
@@ -71,6 +74,7 @@ class UserController {
             if(req.file){
                 req.body.image = req.file.path;
             }
+            req.body.password = await bcrypt.hash(req.body.password, 12);
             const newUser = new User({
                 ...req.body
             });
@@ -78,7 +82,7 @@ class UserController {
             return res
                 .status(ERROR_LIST.HTTP_OK)
                 .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, newUser));
-        } catch (err) {
+       } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
