@@ -56,28 +56,34 @@ class roleController {
                 role: "string",
                 permissions: "array"
             });
-            let bool = false;
-            let i, j;
-            const Permissions  = req.body.permissions;
-            for(i = 0; i < Permissions.length; i++)
-            {
-                if(i == 0 || bool == true)
-                {
-                    for(j = 0; j < permissions.length; j++ ){
-                        if(Permissions[i] == permissions[j]){
-                            bool = true;
-                            break;
-                        }
-                        else
-                            bool = false;
-                    }
+
+            const tempPermissions  = [];
+            req.body.permissions.map((item)=>{
+                if(permissions.indexOf(item)>-1){
+                    tempPermissions.push(item);
                 }
-            }
-            if(bool == false){
-                return res
-                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY,{}));
-            }
+            });
+            //let bool = false;
+            // let i, j;
+            // for(i = 0; i < Permissions.length; i++)
+            // {
+            //     if(i == 0 || bool == true)
+            //     {
+            //         for(j = 0; j < permissions.length; j++ ){
+            //             if(Permissions[i] == permissions[j]){
+            //                 bool = true;
+            //                 break;
+            //             }
+            //             else
+            //                 bool = false;
+            //         }
+            //     }
+            // }
+            // if(bool == false){
+            //     return res
+            //         .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+            //         .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY,{}));
+            // }
             if(validate.fails()){
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
