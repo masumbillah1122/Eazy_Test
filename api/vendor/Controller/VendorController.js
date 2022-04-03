@@ -4,6 +4,8 @@ const ResponseStatus = require("../../helpers/responseStatus");
 const Validator = require('validatorjs');
 const Vendor = require("../../models/Vendor");
 const fs = require("fs");
+const bcrypt = require("bcryptjs/dist/bcrypt");
+const isMongooseId = require("mongoose");
 
 class VendorController{
     async list(req, res, next){
@@ -34,13 +36,13 @@ class VendorController{
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
-            const vendor = await Vendor.findOne({
+            const Vendor = await vendor.findOne({
                 slug: req.query.slug,
             });
-            if(vendor){
+            if(Vendor){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success("Vendor found", vendor));
+                    .send(ResponseStatus.success("Vendor found", Vendor));
             }
             return res
                 .status(ERROR_LIST.HTTP_ACCEPTED)
@@ -65,59 +67,47 @@ class VendorController{
                 secondaryKeyAccountManager: "string | required",
                 role: "string",
             });
-            
-            // const validatorBank = new Validator(req.body, {
-            // })
-             
+            /*
+            const validatorBank = new Validator(req.body, {
+
+            })
+
+             */
 
             if(validator.fails()){
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY, validator.errors.errors));
             }
-            const exist = await Vendor.findOne({phone: req.body.phone});
+            const exist = await Vendor.findOne({slug: req.body.slug});
             if(exist){
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_ACCEPTED, {msg: "vendor already exist with this slug"}));
+                    .send(ResponseStatus.failure("vendor already exist with this slug", exist));
             }
-            const vendor = new Vendor({
+            const newVendor = new Vendor({
                 ...req.body
             });
-            await vendor.save();
+            
+            await newVendor.save();
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, vendor));
+                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, newVendor));
         }catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
-
     async update(req, res, next){
-        try{
-            let vendor = await Vendor.findById(req.params.id);
-            if(!vendor){
-                return res
-                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {}));
-            }
-            vendor = await Vendor.findByIdAndUpdate(req.params.id, req.body, {
-                new: true,
-                runValidators: true,
-                useUnified: false
-            });
-            return res
-                .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, vendor));
-        } catch(err){
+        try {
+            //
+        } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
-
     async remove(req, res, next){
         try{
             const vendor = await Vendor.findOne({
@@ -126,9 +116,12 @@ class VendorController{
             if(!vendor){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.failure("Vendor not found.",
-                        {}));
+                    .send(ResponseStatus.failure("Vendor not found.", 
+                    {}));
             }
+            // if(fs.existsSync(vendor.image)){
+            //     fs.unlinkSync(vendor.image);
+            // }
             vendor.remove();
             return res
                 .status(ERROR_LIST.HTTP_OK)
@@ -136,45 +129,45 @@ class VendorController{
         } catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, 
                     err));
         }
     }
-    // async changePassword(req, res, next){
-    //     try {
-    //         const { slug, oldPassword, newPassword, confirmPassword} = req.body;
-    //         const validate = new Validator(req.body, {
-    //             oldPassword: "string",
-    //             newPassword: "string",
-    //             confirmPassword: "string"
-    //         });
-    //         if(validate.fails()){
-    //             return res
-    //                 .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-    //                 .send()
-    //         }
-    //         if(newPassword != confirmPassword){
-    //             return res
-    //                 .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-    //                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {}))
-    //         }
-    //         const exist = await Vendor.findOne({
-    //             slug: slug,
-    //         });
-    //         const checkPass = await bcrypt.compare(oldPassword, exist.pass);
-    //         if(!checkPass){
-    //             return res
-    //                 .status(ERROR_LIST.HTTP_UNAUTHORIZED)
-    //                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNAUTHORIZED, {}));
-    //         }
-    //
-    //     } catch (err) {
-    //         return res
-    //             .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-    //             .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
-    //     }
-    // }
+    async changePassword(req, res, next){
+        try {
+            const { slug, oldPassword, newPassword, confirmPassword} = req.body;
+            const validate = new Validator(req.body, {
+                oldPassword: "string",
+                newPassword: "string",
+                confirmPassword: "string"
+            });
+            if(validate.fails()){
+                return res
+                .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                .send()
+            }
+            if(newPassword != confirmPassword){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {}))
+            }
+            const exist = await Vendor.findOne({
+                slug: slug,
+            });
+            const checkPass = await bcrypt.compare(password, exist.pass);
+            if(!checkPass){
+                return res
+                    .status(ERROR_LIST.HTTP_UNAUTHORIZED)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNAUTHORIZED, {}));
+            }
+            exist.p
 
+        } catch (err) {
+            return res
+                .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
+        }
+    }
 }
 
 module.exports = new VendorController();

@@ -8,21 +8,32 @@ class BrandController{
     async index(req, res, next){
         try {
             const brands = await Brand.find();
+            if(!brands.length){
+                return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT));
+            }
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success("Index function", {}));
+                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, brands));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
+                .send(ResponseStatus.failure(
+                    ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
+                    err
+                ));
         }
     }
     async show(req, res, next){
         try {
-            const { id } = req.params;
-            return res
-                .status(ERROR_LIST.HTTP_OK)
-                .send({msg: "Show function", id});
+            // const { id } = req.params;
+            const brand = await Brand.findById(req.params.id);
+            if(brand){
+                return res
+                    .status(ERROR_LIST.HTTP_OK)
+                    .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, brand));
+            }
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -47,59 +58,62 @@ class BrandController{
             const exist = await Brand.findOne({name: req.body.name, bnName: req.body.bnName});
             if(exist){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success("Brand already exist", exist));
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("Brand already exist.", exist));
             }
             let create = new Brand({
                 ...req.body
             });
-            create = await create.save();
-            if(create){
+             await create.save();
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success("Brand created successfully", create));
-            }
-            return res
-                .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.failure("Brand could not be created",{}));
+                    .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, create));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(
-                    ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
-                    err
-                ));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
-
     async update(req, res, next){
         try {
-            const { id } = req.params;
+            // const { id } = req.params;
+            let brand = await Brand.findById(req.params.id);
+            if(!brand){
+                return res
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT, {}));
+            }
+            brand = await Brand.findByIdAndUpdate(req.params.id, req.body, {
+                new: true,
+                runValidators: true,
+                useUnified: false
+            });
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send({msg: "Update function", id});
+                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, brand));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(
-                    ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
-                    err
-                ));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
     async remove(req, res, next){
         try {
-            const { id } = req.params;
+            // const { id } = req.params;
+            const brand = await Brand.findById(req.params.id);
+            if(!brand){
+                return res
+                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
+                    .send(ResponseStatus.failure("Brand is not found with this id.", {}));
+            }
+            await brand.remove();
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send({msg: "Remove function", id});
+                .send(ResponseStatus.success("Brand remove successfully", brand));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(
-                    ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR,
-                    err
-                ));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
 }

@@ -9,11 +9,11 @@ class AdminController{
     async Index(req, res, next){
         try{
             const admins = await Admin.find({_id: mongoose.Types.ObjectId(req.params.id)}) 
-                .populate("Uaer")
+                .populate("User")
                 .exec();
             if(!admins.length){
                 return res
-                .status(ERROR_LIST.HTTP_OK)
+                .status(ERROR_LIST.HTTP_NO_CONTENT)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT));
             }
             return res
@@ -31,11 +31,15 @@ class AdminController{
             const admin = await Admin.findById({_id: mongoose.Types.ObjectId(req.params.id)}) 
                 .populate("userId")
                 .exec();
-            if(admin){
+            if(!admin){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, admin));
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .send(ResponseStatus.failure("No admin found", {}));
             }
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success("Admin found", admin));
+
         }catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -47,8 +51,8 @@ class AdminController{
         try{
             
             const validate = new Validator(req.body, {
-                //userId: "required|min:8|max:200",
-                //role: "min:10|max:1000",
+                username: "required|min:8|max:200",
+                // role: "min:10|max:1000",
                 status: "min:2|max:100"
             });
             if(validate.fails()){
@@ -63,8 +67,8 @@ class AdminController{
             });
             if(exist){
                 return res
-                    .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success("Admin already exist"));
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("Admin already exist", exist));
             }
             let create = new Admin({
                 ...req.body
@@ -76,22 +80,31 @@ class AdminController{
                     .send(ResponseStatus.success("Admin created successfully", create));
             }
             return res
-                .status(ERROR_LIST.HTTP_OK)
+                .status(ERROR_LIST.HTTP_ACCEPTED)
                 .send(ResponseStatus.failure("Admin could not be created", {}));
         }catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, 
-                    err));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
     async UpdateAccount(req, res, next){
         try{
+            const validate = new Validator(req.body, {
+                username: "required|min:8|max:200",
+                // role: "min:10|max:1000",
+                status: "min:2|max:100"
+            });
+            if(validate.fails()){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors. errors));
+            }
             let admin = await Admin.findById(req.params.id);
             if(!admin){
                 return res
-                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {}));
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .send(ResponseStatus.failure("No admin found", {}));
             }
             admin = await Admin.findByIdAndUpdate(req.params.id, req.body, {
                 new: true,
@@ -104,8 +117,7 @@ class AdminController{
         }catch(err){
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, 
-                    err));
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
     async UpdatePassword(req, res, next){
