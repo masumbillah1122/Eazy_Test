@@ -51,7 +51,6 @@ class roleController {
     }
     async create(req, res, next){
         try {
-            //req.files
             const validate = new Validator(req.body, {
                 role: "string",
                 permissions: "array"
@@ -63,27 +62,15 @@ class roleController {
                     tempPermissions.push(item);
                 }
             });
-            //let bool = false;
-            // let i, j;
-            // for(i = 0; i < Permissions.length; i++)
-            // {
-            //     if(i == 0 || bool == true)
-            //     {
-            //         for(j = 0; j < permissions.length; j++ ){
-            //             if(Permissions[i] == permissions[j]){
-            //                 bool = true;
-            //                 break;
-            //             }
-            //             else
-            //                 bool = false;
-            //         }
-            //     }
-            // }
-            // if(bool == false){
-            //     return res
-            //         .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-            //         .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY,{}));
-            // }
+
+            if(tempPermissions.length == 0){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY,{}));
+            }
+
+            req.body.permissions = tempPermissions;
+
             if(validate.fails()){
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)

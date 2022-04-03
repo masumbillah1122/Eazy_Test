@@ -9,7 +9,7 @@ class AdminController{
     async Index(req, res, next){
         try{
             const admins = await Admin.find({_id: mongoose.Types.ObjectId(req.params.id)}) 
-                .populate("User")
+                .populate(["userId", "role", "createdBy", "updatedBy"])
                 .exec();
             if(!admins.length){
                 return res

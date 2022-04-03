@@ -57,14 +57,14 @@ class VendorController{
     async create(req, res, next){
         try {
             const validator = new Validator(req.body, {
-                bnName: "string | required",
-                slug: "string | required",
-                tradeLicence: "string | required",
-                pickupLocation: "string | required",
+                bnName: "string|required",
+                slug: "string|required",
+                tradeLicence: "string|required",
+                pickupLocation: "string|required",
                 paymentSystem: "string",
                 payPeriod: "string",
-                keyAccountManager: "string | required",
-                secondaryKeyAccountManager: "string | required",
+                keyAccountManager: "string|required",
+                secondaryKeyAccountManager: "string|required",
                 role: "string",
             });
             /*
