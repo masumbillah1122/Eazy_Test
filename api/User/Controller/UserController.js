@@ -4,6 +4,7 @@ const ResponseStatus = require("../../helpers/responseStatus");
 const Validator = require('validatorjs');
 const User = require('../../models/User');
 const fs = require("fs");
+const bcrypt = require("bcryptjs");
 
 class UserController {
     async list(req, res, next){
@@ -11,8 +12,8 @@ class UserController {
             const users = await User.find();
             if(!users.length){
                 return res
-                    .status(ERROR_LIST.HTTP_NO_CONTENT)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT))
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("There are no user", {}));
             }
             return res
                 .status(ERROR_LIST.HTTP_OK)
@@ -26,11 +27,22 @@ class UserController {
 
     async show(req, res, next){
         try {
-            const user = await User.findById(req.params.id);
+            const validate = new Validator(req.query, {
+                email: "string|required"
+            });
+            if(!validate){
+                return res
+                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
+            }
+
+            const user = await User.findOne({
+                email: req.query.email,
+            });
             if(!user){
                 return res
-                    .status(ERROR_LIST.HTTP_NO_CONTENT)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT, {}));
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("No user for this email", {}));
             }
             return res
                 .status(ERROR_LIST.HTTP_OK)
@@ -44,7 +56,7 @@ class UserController {
 
     async create(req, res, next){
         try {
-            //req.file = files;
+
             const validator = new Validator(req.body, {
                 name: "string|min:5|max:50",
                 email: "email",
@@ -52,9 +64,9 @@ class UserController {
                 gender: "alpha",
                 maritalStatus: "alpha",
                 dob: "date",
-                addresses: "array",
-                password: "required|min:6",
+                password: "string|required|min:6",
             });
+
             if(validator.fails()){
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
@@ -66,6 +78,7 @@ class UserController {
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("User already exist with this phone number.", exist));
             }
+
             if(req.file){
                 req.body.image = req.file.path;
             }
@@ -124,17 +137,19 @@ class UserController {
 
     async remove(req, res, next){
         try {
-            const user = await User.findById(req.params.id);
+            const user = await User.findOne({email: req.query.email});
             if(!user){
-                return res.status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR).send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {msg: "User is not found with this id."}));
+                return res
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("User is not found for this email", {}));
             }
             if(fs.existsSync(user.image)){
                 fs.unlinkSync(user.image);
             }
             await user.remove();
-            return res.status(ERROR_LIST.HTTP_OK).send(ResponseStatus.success({
-                message: "User Deleted Successfully"
-            }));
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success({message: "User Deleted Successfully", user}));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -142,11 +157,10 @@ class UserController {
         }
     }
 
-
     async changePassword(req, res, next){
         try {
-            const { slug, oldPassword, newPassword, confirmPassword} = req.body;
             const validate = new Validator(req.body, {
+                email: "string",
                 oldPassword: "string",
                 newPassword: "string",
                 confirmPassword: "string"
@@ -154,26 +168,32 @@ class UserController {
             if(validate.fails()){
                 return res
                 .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-                .send()
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
-            if(newPassword != confirmPassword){
+            if(req.body.newPassword != req.body.confirmPassword){
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {}))
+                    .send(ResponseStatus.failure("new password and confirm password dose not match", {}))
             }
-            const exist = await User.findOne({
-                slug: slug,
-            });
-            const checkPass = await bcrypt.compare(password, exist.password);
+
+            let exist = await User.findOne({email: req.body.email});
+            if(!exist){
+                return res
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("user not exist", {}));
+            }
+            const checkPass = await bcrypt.compare(req.body.oldPassword, exist.password);
             if(!checkPass){
                 return res
                     .status(ERROR_LIST.HTTP_UNAUTHORIZED)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNAUTHORIZED, {}));
             }
-            exist.password = await newPassword;
+
+            exist.password = await bcrypt.hash(req.body.newPassword, 12);
+            await exist.save();
             return res
                 .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success("Password Changed successfully", {}));
+                .send(ResponseStatus.success("Password Changed successfully", exist));
 
         } catch (err) {
             return res
@@ -184,20 +204,21 @@ class UserController {
 
     async blockUser(req, res, next){
         try {
-            const user = await User.findOne({
-                name: req.query.username,
+            let user = await User.findOne({
+                email: req.query.email,
             });
             if(!user){
                 return res
-                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("User not found", {}));
             }
-            if(user.accountStatus === "Deactivate" ){
+            if(user.accountStatus == "Deactivate"){
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("User already blocked", user));
             }
             user.accountStatus = "Deactivate";
+            await user.save();
             return res
                 .status(ERROR_LIST.HTTP_OK)
                 .send(ResponseStatus.success("user blocked successfully", user));
@@ -209,21 +230,21 @@ class UserController {
     }
     async unblockUser(req, res, next){
         try {
-            //
-            const user = await User.findOne({
-                name: req.query.username,
+            let user = await User.findOne({
+                email: req.query.email,
             });
             if(!user){
                 return res
-                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("User not found.", {} ));
             }
-            if(user.accountStatus === "Active"){
+            if(user.accountStatus == "Active"){
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("User already unblocked", user));
             }
             user.accountStatus = "Active";
+            await user.save();
             return res
                 .status(ERROR_LIST.HTTP_OK)
                 .send(ResponseStatus.success("User unblocked successfully", user));

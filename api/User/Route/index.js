@@ -16,12 +16,12 @@ const storage = multer.diskStorage({
 const upload = multer({storage});
 
 router.get('/list', UserController.list);
-router.get('/show/:username', UserController.show);
+router.get('/show', UserController.show);
 router.post('/create', upload.single('image'), UserController.create);
 router.put('/update/:username', UserController.update);
-router.delete('/remove/:username', UserController.remove);
-router.post('/change-password/:username', UserController.changePassword);
-router.put('/block-user/:username', UserController.blockUser);
-router.put('/unblock-user/:username', UserController.unblockUser);
+router.delete('/remove', UserController.remove);
+router.post('/change-password', UserController.changePassword);
+router.put('/block-user', UserController.blockUser);
+router.put('/unblock-user', UserController.unblockUser);
 
 module.exports = router;

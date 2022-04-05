@@ -73,12 +73,12 @@ const userSchema = new Schema({
         postCode: {
             type: String,
             trim: true,
-            required: false
+            //required: false
         },
         postOffice: {
             type: String,
             trim: true,
-            required: false
+            //required: false
         }
     }],
     password: {
