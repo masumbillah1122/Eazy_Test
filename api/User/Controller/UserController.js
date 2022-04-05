@@ -4,6 +4,7 @@ const ResponseStatus = require("../../helpers/responseStatus");
 const Validator = require('validatorjs');
 const User = require('../../models/User');
 const fs = require("fs");
+const bcrypt = require("bcryptjs");
 
 class UserController {
     async list(req, res, next){

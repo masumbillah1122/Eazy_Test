@@ -2,13 +2,14 @@ const ERROR_LIST = require("../../helpers/errorList");
 const ERROR_MESSAGE = require("../../helpers/errorMessage");
 const ResponseStatus = require("../../helpers/responseStatus");
 const Product = require("../../models/Product");
-const Validator = require('validatorjs');
+const Validator = require('validatorjs'); 
+const mongoose = require("mongoose");
 
 
 class ProductController{
     async index(req, res, next){
         try{
-            const products = await Product.find();
+            const products = await Product.find().limit(4);
             if(!products.length){
                 return res
                     .status(ERROR_LIST.HTTP_NO_CONTENT)
@@ -25,7 +26,7 @@ class ProductController{
     }
     async show(req, res, next){
         try{
-            const product = await Product.findById(req.params.id);
+            const product = await Product.findOne({_id: req.params.id});
             if(product){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
@@ -41,7 +42,8 @@ class ProductController{
         try {
             //req.files
             const validate = new Validator(req.body, {
-                name: "required|min:2|max:200|alpha",
+                // name: "string|min:2|max:200|alpha",
+                name: "string",
                 bnName: "min:2|max:200"
             });
             if(validate.fails()){
@@ -54,6 +56,9 @@ class ProductController{
                 return res
                     .status(ERROR_LIST.HTTP_OK)
                     .send(ResponseStatus.failure("Product already exist.", exist));
+            }
+            if(req.file){
+                req.body.coverImage = req.file.path;
             }
             let create = new Product({
                 ...req.body

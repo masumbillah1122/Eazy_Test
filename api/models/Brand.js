@@ -25,11 +25,11 @@ const BrandSchema = new Schema({
     published: {
         type: Boolean,
         default: true
-    }
-    // categories: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: "Category"
-    // }]
+    },
+    categories: [{
+        type: Schema.Types.ObjectId,
+        ref: "Category"
+    }]
 });
 
 module.exports = model("Brand", BrandSchema, "Brand");

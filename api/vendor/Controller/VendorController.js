@@ -5,7 +5,7 @@ const Validator = require('validatorjs');
 const Vendor = require("../../models/Vendor");
 const fs = require("fs");
 const bcrypt = require("bcryptjs/dist/bcrypt");
-const isMongooseId = require("mongoose");
+const mongoose = require("mongoose");
 
 class VendorController{
     async list(req, res, next){
@@ -28,25 +28,15 @@ class VendorController{
 
     async show(req, res, next){
         try {
-            const validate = new Validator(req.query, {
-                slug: "string | required",
-            });
-            if(validate.fails()){
-                return res
-                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
-            }
-            const Vendor = await vendor.findOne({
-                slug: req.query.slug,
-            });
-            if(Vendor){
+            // const { id } = req.params;
+            const vendor = await Vendor.findById(req.params.id)
+                // .populate('')
+                // .exec();
+            if(vendor){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
-                    .send(ResponseStatus.success("Vendor found", Vendor));
+                    .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, vendor));
             }
-            return res
-                .status(ERROR_LIST.HTTP_ACCEPTED)
-                .send(ResponseStatus.failure("Vendor not found", {}))
         }catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
@@ -57,22 +47,21 @@ class VendorController{
     async create(req, res, next){
         try {
             const validator = new Validator(req.body, {
-                bnName: "string | required",
-                slug: "string | required",
-                tradeLicence: "string | required",
-                pickupLocation: "string | required",
+                bnName: "string|required",
+                slug: "string|required",
+                tradeLicence: "string|required",
+                pickupLocation: "string|required",
                 paymentSystem: "string",
                 payPeriod: "string",
-                keyAccountManager: "string | required",
-                secondaryKeyAccountManager: "string | required",
+                keyAccountManager: "string|required",
+                secondaryKeyAccountManager: "string|required",
                 role: "string",
             });
-            /*
-            const validatorBank = new Validator(req.body, {
+            
+            // const validatorBank = new Validator(req.body, {
 
-            })
+            // })
 
-             */
 
             if(validator.fails()){
                 return res
@@ -101,7 +90,21 @@ class VendorController{
     }
     async update(req, res, next){
         try {
-            //
+            // const { id } = req.params;
+            let vendor = await Vendor.findById(req.params.id);
+            if(!vendor){
+                return res
+                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT, {}));
+            }
+            vendor = await Vendor.findByIdAndUpdate(req.params.id, req.body, {
+                new: true,
+                runValidators: true,
+                useUnified: false
+            });
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, vendor));
         } catch (err) {
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
@@ -111,7 +114,7 @@ class VendorController{
     async remove(req, res, next){
         try{
             const vendor = await Vendor.findOne({
-                slug: req.query.slug
+                id: req.query.id
             });
             if(!vendor){
                 return res
@@ -135,8 +138,8 @@ class VendorController{
     }
     async changePassword(req, res, next){
         try {
-            const { slug, oldPassword, newPassword, confirmPassword} = req.body;
             const validate = new Validator(req.body, {
+                email: "string",
                 oldPassword: "string",
                 newPassword: "string",
                 confirmPassword: "string"
@@ -144,23 +147,32 @@ class VendorController{
             if(validate.fails()){
                 return res
                 .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-                .send()
+                .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
-            if(newPassword != confirmPassword){
+            if(req.body.newPassword != req.body.confirmPassword){
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, {}))
+                    .send(ResponseStatus.failure("new password and confirm password dose not match", {}))
             }
-            const exist = await Vendor.findOne({
-                slug: slug,
-            });
-            const checkPass = await bcrypt.compare(password, exist.pass);
+
+            let exist = await Vendor.findOne({email: req.body.email});
+            if(!exist){
+                return res
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("Vendor not exist", {}));
+            }
+            const checkPass = await bcrypt.compare(req.body.oldPassword, exist.password);
             if(!checkPass){
                 return res
                     .status(ERROR_LIST.HTTP_UNAUTHORIZED)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNAUTHORIZED, {}));
             }
-            exist.p
+
+            exist.password = await bcrypt.hash(req.body.newPassword, 12);
+            await exist.save();
+            return res
+                .status(ERROR_LIST.HTTP_OK)
+                .send(ResponseStatus.success("Password Changed successfully", exist));
 
         } catch (err) {
             return res

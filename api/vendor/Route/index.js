@@ -16,11 +16,11 @@ const VendorController = require('../Controller/VendorController');
 // const upload = multer({storage});
 
 router.get('/list', VendorController.list);
-router.get('/show/:slug', VendorController.show);
+router.get('/show/:id', VendorController.show);
 router.post('/create', VendorController.create);
-router.put('/update/:slug', VendorController.update);
-router.delete('/remove/:slug', VendorController.remove);
-router.post('/change-password/:slug', VendorController.changePassword);
+router.put('/update/:id', VendorController.update);
+router.delete('/remove/:id', VendorController.remove);
+router.post('/change-password', VendorController.changePassword);
 
 
 module.exports = router;

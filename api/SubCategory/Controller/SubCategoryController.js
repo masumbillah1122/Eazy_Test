@@ -25,14 +25,6 @@ class SubCategoryController{
 
     async show(req, res, next){
         try{
-            const validate = new Validator(req.query, {
-                slug: req.query.slug,
-            });
-            if(validate.fails()){
-                return res
-                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
-            }
             const exist = await SubCategory.findOne({
                 slug: req.query.slug,
             });

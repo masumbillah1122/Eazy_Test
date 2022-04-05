@@ -3,6 +3,7 @@ const ERROR_MESSAGE = require("../../helpers/errorMessage");
 const ResponseStatus = require("../../helpers/responseStatus");
 const Brand = require('../../models/Brand');
 const Validator = require('validatorjs');
+const mongoose = require("mongoose");
 
 class BrandController{
     async index(req, res, next){
@@ -28,7 +29,9 @@ class BrandController{
     async show(req, res, next){
         try {
             // const { id } = req.params;
-            const brand = await Brand.findById(req.params.id);
+            const brand = await Brand.findById(req.params.id)
+                // .populate('categories')
+                // .exec();
             if(brand){
                 return res
                     .status(ERROR_LIST.HTTP_OK)
@@ -47,7 +50,8 @@ class BrandController{
         try {
             //req.files
             const validate = new Validator(req.body, {
-                name: "required|min:2|max:200|alpha",
+                // name: "min:2|max:200|alpha",
+                name: "string",
                 bnName: "min:2|max:200"
             });
             if(validate.fails()){
@@ -60,6 +64,9 @@ class BrandController{
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Brand already exist.", exist));
+            }
+            if(req.file){
+                req.body.featuredImage = req.file.path;
             }
             let create = new Brand({
                 ...req.body

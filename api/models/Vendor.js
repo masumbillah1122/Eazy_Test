@@ -1,11 +1,11 @@
 const { Schema, model } = require("mongoose");
 
 const vendorSchema = new Schema({
-    userId: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    },
+    // userId: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: "User",
+    //     required: true
+    // },
     bnName: {
         type: String,
         default: null,
@@ -147,16 +147,16 @@ const vendorSchema = new Schema({
             trim: true
         }
     },
-    createdBy: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    updatedBy: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    }
+    // createdBy: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'User',
+    //     required: true
+    // },
+    // updatedBy: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'User',
+    //     required: true
+    // }
 }, {
     timestamps: true
 });

@@ -18,36 +18,36 @@ const productSchema = new Schema({
         unique: true,
         trim: true
     },
-    // author: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Author',
-    //     default: null
-    // }],
-    // translator: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Author',
-    //     default: null
-    // }],
-    // editor: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Author',
-    //     default: null
-    // }],
-    // category: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'Category',
-    //     default: null
-    // }],
-    // subCategory: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'SubCategory',
-    //     default: null
-    // }],
-    // leafCategory: [{
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'LeafCategory',
-    //     default: null
-    // }],
+    author: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Author',
+        default: null
+    }],
+    translator: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Author',
+        default: null
+    }],
+    editor: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Author',
+        default: null
+    }],
+    category: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+        default: null
+    }],
+    subCategory: [{
+        type: Schema.Types.ObjectId,
+        ref: 'SubCategory',
+        default: null
+    }],
+    leafCategory: [{
+        type: Schema.Types.ObjectId,
+        ref: 'LeafCategory',
+        default: null
+    }],
     orderType:{
         type: String,
         trim: true,
@@ -118,22 +118,22 @@ const productSchema = new Schema({
         required: true,
         trim: true
     },
-    // createdBy: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'User',
-    //     required: true
-    // },
-    // updatedBy: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'User',
-    //     required: true
-    // },
-    // auditBy: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: 'User',
-    //     required: false,
-    //     default: null
-    // }
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    updatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    auditBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
+        default: null
+    }
 },{
     timestamps: true
 });
