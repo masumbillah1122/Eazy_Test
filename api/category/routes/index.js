@@ -15,8 +15,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({storage});
 
-router.get("/", CategoryController.list);
-router.get("/show/:id", CategoryController.show);
+router.get("/list", CategoryController.list);
+router.get("/show", CategoryController.show);
 router.post("/create", CategoryController.create);
 router.put("/update/:id", CategoryController.update);
 router.delete("/remove/:id", CategoryController.remove);

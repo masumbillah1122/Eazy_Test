@@ -27,7 +27,7 @@ class category {
     async show(req, res, next){
         try{
             const validate = new Validator(req.query, {
-                slug: req.query.slug,
+                slug: "string"
             });
             if(validate.fails()){
                 return res
@@ -39,7 +39,7 @@ class category {
             });
             if(!exist){
                 return res
-                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Category not found", {}));
             }
             return res
@@ -98,8 +98,8 @@ class category {
             let existCategory = await Category.findById(req.params.id);
             if(!existCategory){
                 return res
-                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {}));
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("Category dose not  exist", {}));
             }
             existCategory = await Category.findByIdAndUpdate(req.params.id, req.body, {
                 new: true,
@@ -120,8 +120,8 @@ class category {
             const existCategory = await Category.findById(req.params.id);
             if(!existCategory){
                 return res
-                    .status(ERROR_LIST.HTTP_NO_CONTENT)
-                    .send(ResponseStatus.failure("Sub-Category is not found with this id.", {}));
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("Category is not found with this id.", {}));
             }
             await existCategory.remove();
             return res

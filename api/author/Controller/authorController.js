@@ -12,7 +12,7 @@ class authorController {
             const author = await Author.find();
             if(!author.length){
                 return res
-                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_NO_CONTENT));
             }
             return res
@@ -37,7 +37,7 @@ class authorController {
             const author = await Author.findOne({slug: req.query.slug});
             if (!author){
                 return res
-                    .status(ERROR_LIST.HTTP_NOT_FOUND)
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Author not found", {}));
             }
             return res
@@ -56,8 +56,6 @@ class authorController {
             const validate = new Validator(req.body, {
                 name: "string",
                 bnName: "string",
-                image: "string",
-                banner: "string",
                 slug: "string",
             });
             if (!validate) {
@@ -89,8 +87,8 @@ class authorController {
             let author = await Author.findById(req.params.id);
             if(!author){
                 return res
-                    .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, {}));
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
+                    .send(ResponseStatus.failure("Author not found", {}));
             }
             author = await Author.findByIdAndUpdate(req.params.id, req.body, {
                 new: true,
@@ -109,11 +107,11 @@ class authorController {
     async remove(req, res, next){
         try {
             const author = await Author.findOne({
-                name: req.query.username,
+                slug: req.query.slug,
             });
             if(!author){
                 return res
-                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("User not found", {}));
             }
             if(fs.existsSync(Author.image)){
