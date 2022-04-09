@@ -3,7 +3,7 @@ const router = express.Router();
 const BrandController = require('../controller/BrandController');
 const multer = require("multer");
 const path = require("path");
-const { Script } = require("vm");
+
 
 const storage = multer.diskStorage({
     destination: (req, file, next) => {
@@ -18,7 +18,12 @@ const upload = multer({storage});
 
 router.get('/',BrandController.index);
 router.get('/show/:id',BrandController.show);
-router.post('/create', upload.single('featuredImage'), BrandController.create);
+router.post('/create', upload.fields([
+    {
+        name: 'icon', maxCount: 1}, 
+        {
+            name: 'featuredImage', maxCount: 1}
+        ]),  BrandController.create);
 router.put('/update/:id',BrandController.update);
 router.delete('/remove/:id',BrandController.remove);
 

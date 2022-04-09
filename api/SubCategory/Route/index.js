@@ -17,7 +17,12 @@ const upload = multer({storage});
 
 router.get("/", SubCategoryController.list);
 router.get("/show/:id", SubCategoryController.show);
-router.post("/create", upload.single('image'), SubCategoryController.create);
+router.post("/create", upload.fields([
+    {
+        name: 'image', maxCount: 1}, 
+        {
+            name: 'banner', maxCount: 1}
+        ]),  SubCategoryController.create);
 router.put("/update/:id", SubCategoryController.update);
 router.delete("/remove/:id", SubCategoryController.remove);
 

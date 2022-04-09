@@ -4,13 +4,14 @@ const ResponseStatus = require("../../helpers/responseStatus");
 const LeafCategory = require("../../models/LeafCategory");
 const Validator = require("validatorjs");
 const mongoose = require("mongoose"); 
-
+const fs = require("fs");
 
 class LeafCategoryController{
     async index(req, res, next){
         try{
             const leafCategories = await LeafCategory.find() 
                 .populate('products')
+                .limit(3)
                 .exec();
             if(!leafCategories.length){
                 return res
@@ -62,9 +63,11 @@ class LeafCategoryController{
                     .status(ERROR_LIST.HTTP_OK)
                     .send(ResponseStatus.failure("Leaf Category already exist.", exist));
             }
-            if(req.file){
-                req.body.image = req.file.path;
+            if(req.files){
+                req.body.image = req.files["image"][0].path;
+                req.body.banner = req.files["banner"][0].path;
             }
+            console.log(req.files);
             let create = new LeafCategory({
                 ...req.body
             });
@@ -80,15 +83,15 @@ class LeafCategoryController{
     }
     async update(req, res, next){
         try{
-            const validate = new Validator(req.body, {
-                name: "|min:2|max:200|alpha",
-                bnName: "min:2|max:200"
-            });
-            if(validate.fails()){
-                return res
-                    .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
-            }
+            // const validate = new Validator(req.body, {
+            //     name: "|min:2|max:200|alpha",
+            //     bnName: "min:2|max:200"
+            // });
+            // if(validate.fails()){
+            //     return res
+            //         .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
+            //         .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
+            // }
             let leafCategory = await LeafCategory.findById(req.params.id);
             if(!leafCategory){
                 return res
@@ -116,6 +119,12 @@ class LeafCategoryController{
                 return res
                     .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                     .send(ResponseStatus.failure("Leaf Category is not found with this id.", {}));
+            }
+            if(fs.existsSync(leafCategory.image)){
+                fs.unlinkSync(leafCategory.image)
+            }
+            if(fs.existsSync(leafCategory.banner)){
+                fs.unlinkSync(leafCategory.banner)
             }
             await leafCategory.remove();
             return res

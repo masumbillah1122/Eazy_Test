@@ -11,6 +11,7 @@
     "cookie-parser": "^1.4.6",
     "debug": "^2.6.9",
     "express": "^4.16.4",
+    "fs": "0.0.1-security",
     "http-errors": "^1.6.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.2.7",

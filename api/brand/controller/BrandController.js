@@ -3,6 +3,7 @@ const ERROR_MESSAGE = require("../../helpers/errorMessage");
 const ResponseStatus = require("../../helpers/responseStatus");
 const Brand = require('../../models/Brand');
 const Validator = require('validatorjs');
+const fs = require("fs");
 const mongoose = require("mongoose");
 
 class BrandController{
@@ -65,8 +66,9 @@ class BrandController{
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Brand already exist.", exist));
             }
-            if(req.file){
-                req.body.featuredImage = req.file.path;
+            if(req.files){
+                req.body.image = req.files["icon"][0].path;
+                req.body.banner = req.files["featuredImage"][0].path;
             }
             let create = new Brand({
                 ...req.body
@@ -112,6 +114,12 @@ class BrandController{
                 return res
                     .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                     .send(ResponseStatus.failure("Brand is not found with this id.", {}));
+            }
+            if(fs.existsSync(leafCategory.icon)){
+                fs.unlinkSync(leafCategory.icon)
+            }
+            if(fs.existsSync(leafCategory.featuredImage)){
+                fs.unlinkSync(leafCategory.featuredImage)
             }
             await brand.remove();
             return res

@@ -3,6 +3,7 @@ const ERROR_LIST = require("../../helpers/errorList");
 const ERROR_MESSAGE = require("../../helpers/errorMessage");
 const ResponseStatus = require("../../helpers/responseStatus");
 const Validator = require("validatorjs");
+const fs = require("fs");
 
 
 class category {
@@ -70,10 +71,10 @@ class category {
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.success("Category already exist", exist));
             }
-            // if(req.file){
-            //     req.body.image = req.file.path;
-            //     req.body.banner = req.file.path;
-            // }
+            if(req.files){
+                req.body.image = req.files["image"][0].path;
+                req.body.banner = req.files["banner"][0].path;
+            }
             let create = new Category({
                 ...req.body
             });
@@ -122,6 +123,12 @@ class category {
                 return res
                     .status(ERROR_LIST.HTTP_NO_CONTENT)
                     .send(ResponseStatus.failure("Sub-Category is not found with this id.", {}));
+            }
+            if(fs.existsSync(leafCategory.image)){
+                fs.unlinkSync(leafCategory.image)
+            }
+            if(fs.existsSync(leafCategory.banner)){
+                fs.unlinkSync(leafCategory.banner)
             }
             await existCategory.remove();
             return res
