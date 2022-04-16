@@ -69,6 +69,15 @@ class authorController {
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Author already exist", exist));
             }
+
+            if(req.files){
+                if(req.files["image"]){
+                    req.body.image = req.files["image"][0].path;
+                }
+                if(req.files["banner"]){
+                    req.body.banner = req.files["banner"][0].path;
+                }
+            }
             const newAuthor = new Author({
                 ...req.body
             });
@@ -89,6 +98,21 @@ class authorController {
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Author not found", {}));
+            }
+
+            if(req.files){
+                if(req.files["image"]){
+                    if(fs.existsSync(author.image)){
+                        fs.unlinkSync(author.image);
+                    }
+                    req.body.image = req.files["image"][0].path;
+                }
+                if(req.files["banner"]){
+                    if(fs.existsSync(author.banner)){
+                        fs.unlinkSync(author.banner);
+                    }
+                    req.body.banner = req.files["banner"][0].path;
+                }
             }
             author = await Author.findByIdAndUpdate(req.params.id, req.body, {
                 new: true,
@@ -114,8 +138,11 @@ class authorController {
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("User not found", {}));
             }
-            if(fs.existsSync(Author.image)){
-                fs.unlinkSync(Author.image);
+            if(fs.existsSync(author.image)){
+                fs.unlinkSync(author.image);
+            }
+            if(fs.existsSync(author.banner)){
+                fs.unlinkSync(author.banner);
             }
             author.remove();
             return res

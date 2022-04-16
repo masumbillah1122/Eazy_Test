@@ -62,6 +62,7 @@ class LeafCategoryController{
                     .status(ERROR_LIST.HTTP_OK)
                     .send(ResponseStatus.failure("Leaf Category already exist.", exist));
             }
+
             if(req.file){
                 req.body.image = req.file.path;
             }

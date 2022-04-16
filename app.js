@@ -6,7 +6,6 @@ let logger = require('morgan');
 let mongoose = require('mongoose');
 let bodyParser = require('body-parser');
 const mainRouter = require("./api/routes");
-
 let app = express();
 
 app.use(logger('dev'));

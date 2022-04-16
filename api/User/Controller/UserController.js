@@ -114,13 +114,20 @@ class UserController {
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validator.errors.errors));
             }
-            let user = await User.findById(req.params.username);
+            let user = await User.findById(req.params.id);
             if(!user){
                 return res
-                    .status(ERROR_LIST.HTTP_NO_CONTENT)
+                    .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("No user found", {}));
             }
-            user = await User.findByIdAndUpdate(req.params.username, req.body, {
+
+            if(req.file) {
+                if (fs.existsSync(user.image)){
+                    fs.unlinkSync(user.image);
+                }
+                req.body.image = req.file.path;
+            }
+            user = await User.findByIdAndUpdate(req.params.id, req.body, {
                 new: true,
                 runValidators: true,
                 useUnified: false

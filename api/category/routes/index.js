@@ -13,12 +13,26 @@ const storage = multer.diskStorage({
         next(null, 'image_'+Date.now()+path.extname(file.originalname));
     }
 });
-const upload = multer({storage});
+//const upload = multer({storage});
+maxSize = 100000000;
+const upload = multer({
+    storage : storage,
+    limits: { fileSize: maxSize },
+    fileFilter: function (req, file, cb) {
+        console.log(file.mimetype);
+        if (file.mimetype !== 'image/png' && file.mimetype !== "image/jpeg") {
+            return cb(null, false, new Error('I don\'t have a clue!'));
+        }
+        cb(null, true);
+    }
+
+});
+
 
 router.get("/list", CategoryController.list);
 router.get("/show", CategoryController.show);
-router.post("/create", CategoryController.create);
-router.put("/update/:id", CategoryController.update);
-router.delete("/remove/:id", CategoryController.remove);
+router.post("/create",upload.fields([{ name: 'image', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), CategoryController.create);
+router.put("/update/:id",upload.fields([{ name: 'image', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), CategoryController.update);
+router.delete("/remove", CategoryController.remove);
 
 module.exports = router;

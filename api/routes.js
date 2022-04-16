@@ -10,6 +10,7 @@ const SubcategoryRoute = require("./SubCategory/Route/index");
 const CategoryRoute = require("./category/routes/index");
 const AdminRoute = require("./admin/routes/index");
 const AuthorRoute = require("./author/Route/index");
+const AuthRoute= require("./Auth/Route/index");
 
 router.use('/users', UserRoute);
 router.use('/vendor', VendorRoute);
@@ -21,5 +22,7 @@ router.use("/subCategory", SubcategoryRoute);
 router.use("/category", CategoryRoute);
 router.use("/admin", AdminRoute);
 router.use("/author", AuthorRoute);
+router.use("/userLogin", AuthRoute);
+
 
 module.exports = router;

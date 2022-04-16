@@ -3,9 +3,10 @@ const ERROR_LIST = require("../../helpers/errorList");
 const ERROR_MESSAGE = require("../../helpers/errorMessage");
 const ResponseStatus = require("../../helpers/responseStatus");
 const Validator = require("validatorjs");
+const fs = require("fs");
 
 
-class category {
+class categoryController {
     async list(req, res, next){
         try {
             const existCategorys = await Category.find();
@@ -70,10 +71,14 @@ class category {
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.success("Category already exist", exist));
             }
-            // if(req.file){
-            //     req.body.image = req.file.path;
-            //     req.body.banner = req.file.path;
-            // }
+            if(req.files){
+                if(req.files["image"]){
+                    req.body.image = req.files["image"][0].path;
+                }
+                if(req.files["banner"]){
+                    req.body.banner = req.files["banner"][0].path;
+                }
+            }
             let create = new Category({
                 ...req.body
             });
@@ -101,6 +106,20 @@ class category {
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Category dose not  exist", {}));
             }
+            if(req.files){
+                if(req.files["image"]){
+                    if(fs.existsSync(existCategory.image)){
+                        fs.unlinkSync(existCategory.image);
+                    }
+                    req.body.image = req.files["image"][0].path;
+                }
+                if(req.files["banner"]){
+                    if(fs.existsSync(existCategory.banner)){
+                        fs.unlinkSync(existCategory.banner);
+                    }
+                    req.body.banner = req.files["banner"][0].path;
+                }
+            }
             existCategory = await Category.findByIdAndUpdate(req.params.id, req.body, {
                 new: true,
                 runValidators: true,
@@ -117,12 +136,19 @@ class category {
 
     async remove(req, res, next){
         try {
-            const existCategory = await Category.findById(req.params.id);
+            const existCategory = await Category.findOne({slug: req.query.slug});
             if(!existCategory){
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Category is not found with this id.", {}));
             }
+            if(fs.existsSync(existCategory.image)){
+                fs.unlinkSync(existCategory.image);
+            }
+            if(fs.existsSync(existCategory.banner)){
+                fs.unlinkSync(existCategory.banner);
+            }
+
             await existCategory.remove();
             return res
                 .status(ERROR_LIST.HTTP_OK)
@@ -136,4 +162,4 @@ class category {
 
 }
 
-module.exports = new category();
+module.exports = new categoryController();
