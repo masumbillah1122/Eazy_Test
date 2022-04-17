@@ -6,8 +6,10 @@ let logger = require('morgan');
 let mongoose = require('mongoose');
 let bodyParser = require('body-parser');
 const mainRouter = require("./api/routes");
+const Dotenv = require("dotenv");
 let app = express();
 
+Dotenv.config();
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));

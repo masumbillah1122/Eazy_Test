@@ -48,7 +48,7 @@ class AuthController{
                     dob: account.dob,
                     addresses: account.addresses,
                     image: account.image
-                }, "process.env.JWT_SECRET", {expiresIn: '50000d' });
+                }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '50000d' });
                 return res
                 .status(ERROR_LIST.HTTP_OK)
                 .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, token));
