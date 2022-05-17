@@ -54,17 +54,33 @@ class authorController {
     async create(req, res, next){
         try {
             const validate = new Validator(req.body, {
-                name: "string",
+                name: "string|required",
                 bnName: "string",
-                slug: "string",
+                slug: "string|required",
             });
-            if (!validate) {
+            if (validate.fails()) {
+                if(req.files){
+                    if(req.files["image"]){
+                        fs.unlinkSync(req.files["image"][0].path);
+                    }
+                    if(req.files["banner"]){
+                        fs.unlinkSync(req.files["banner"][0].path);
+                    }
+                }
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
             const exist = await Author.findOne({slug: req.body.slug});
             if (exist) {
+                if(req.files){
+                    if(req.files["image"]){
+                        fs.unlinkSync(req.files["image"][0].path);
+                    }
+                    if(req.files["banner"]){
+                        fs.unlinkSync(req.files["banner"][0].path);
+                    }
+                }
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Author already exist", exist));
@@ -78,14 +94,36 @@ class authorController {
                     req.body.banner = req.files["banner"][0].path;
                 }
             }
-            const newAuthor = new Author({
+            let newAuthor = new Author({
                 ...req.body
             });
-            await newAuthor.save();
+            newAuthor = await newAuthor.save();
+            if(newAuthor)
+            {
+                return res
+                    .status(ERROR_LIST.HTTP_OK)
+                    .send(ResponseStatus.success("Author created successfully", newAuthor));
+            }
+            if(req.files){
+                if(req.files["image"]){
+                    fs.unlinkSync(req.files["image"][0].path);
+                }
+                if(req.files["banner"]){
+                    fs.unlinkSync(req.files["banner"][0].path);
+                }
+            }
             return res
-                .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, newAuthor));
+                .status(ERROR_LIST.HTTP_ACCEPTED)
+                .send(ResponseStatus.failure("Author dose not created successfully", {}));
         } catch (err) {
+            if(req.files){
+                if(req.files["image"]){
+                    fs.unlinkSync(req.files["image"][0].path);
+                }
+                if(req.files["banner"]){
+                    fs.unlinkSync(req.files["banner"][0].path);
+                }
+            }
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
@@ -95,6 +133,14 @@ class authorController {
         try{
             let author = await Author.findById(req.params.id);
             if(!author){
+                if(req.files){
+                    if(req.files["image"]){
+                        fs.unlinkSync(req.files["image"][0].path);
+                    }
+                    if(req.files["banner"]){
+                        fs.unlinkSync(req.files["banner"][0].path);
+                    }
+                }
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Author not found", {}));
@@ -123,6 +169,14 @@ class authorController {
                 .status(ERROR_LIST.HTTP_OK)
                 .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, author));
         } catch(err){
+            if(req.files){
+                if(req.files["image"]){
+                    fs.unlinkSync(req.files["image"][0].path);
+                }
+                if(req.files["banner"]){
+                    fs.unlinkSync(req.files["banner"][0].path);
+                }
+            }
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));

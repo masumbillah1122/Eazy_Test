@@ -5,15 +5,15 @@ const User = require('../../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const Validator = require("validatorjs");
+const jwt_decode = require("jwt-decode");
 
 class AuthController{
     async login(req, res, next){
         try{
             //Write code for login
-                var email = req.body.email;
                 const validate = new Validator(req.body, {
-                    email: "email",
-                    password: "string"
+                    email: "email|required",
+                    password: "string|required"
                 });
                 if(validate.fails()){
                     return res
@@ -24,31 +24,29 @@ class AuthController{
                     email: req.body.email,
                 });
 
-                // console.log(req.body);
-                // console.log(email);
-                // console.log(account);
                 if(!account){
                     return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
-                    .send(ResponseStatus.failure("Account not found", {}));
+                    .send(ResponseStatus.failure("Invalid e-mail or password", {}));
+                }
+                if(account.accountStatus === "Deactivate"){
+                    return res
+                        .status(ERROR_LIST.HTTP_ACCEPTED)
+                        .send(ResponseStatus.failure("Account blocked by admin, Contact with admin"));
                 }
                 const checkPass = await bcrypt.compare(req.body.password, account.password);
                 if(!checkPass){
                     return res
                     .status(ERROR_LIST.HTTP_UNAUTHORIZED)
-                    .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNAUTHORIZED, {}));
+                    .send(ResponseStatus.failure("Invalid e-mail or password", {}));
                 }
-
                 const token = await jwt.sign({
-                    name: account.name,
-                    phone: account.phone,
-                    email: account.email,
-                    gender: account.gender,
-                    maritalStatus: account.maritalStatus,
-                    dob: account.dob,
-                    addresses: account.addresses,
-                    image: account.image
-                }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '50000d' });
+                   id: account.id,
+                }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '5000' });
+
+                account.token = token;
+                await account.save();
+
                 return res
                 .status(ERROR_LIST.HTTP_OK)
                 .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, token));
@@ -59,16 +57,24 @@ class AuthController{
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
+    async auth(req, res, next){
+        const temp = req.headers.authorization;
+        const token = temp.split(" ");
+        const decode = jwt_decode(token[1]);
+        console.log(decode.id);
+        const tempUser = await User.findById(decode.id);
+        if(tempUser.token === token[1])
+        {
+            console.log("jamal");
+            next();
+        }
+        else{
+            console.log("err");
+            return res.status(200).send({});
+        }
 
-    // async registration(req, res, next){
-    //     try{
-    //         //Write code for registration
-    //     } catch (err) {
-    //         return res
-    //             .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
-    //             .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
-    //     }
-    // }
+    }
+
 }
 
 module.exports = new AuthController();

@@ -9,7 +9,9 @@ const mainRouter = require("./api/routes");
 const Dotenv = require("dotenv");
 let app = express();
 
+const client = require("./api/helpers/init_redis");
 Dotenv.config();
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -42,6 +44,5 @@ mongoose.connect(uri).then(() => {
 }).catch((err) => {
     console.log("Database did not connect.", err)
 });
-
 
 module.exports = app;

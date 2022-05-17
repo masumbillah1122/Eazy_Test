@@ -5,6 +5,7 @@ const Validator = require('validatorjs');
 const User = require('../../models/User');
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
+const auth = require("../../Auth/Controller/AuthController");
 
 class UserController {
     async list(req, res, next){
@@ -56,10 +57,9 @@ class UserController {
 
     async create(req, res, next){
         try {
-
             const validator = new Validator(req.body, {
                 name: "string|min:5|max:50",
-                email: "email",
+                email: "email|required",
                 phone: "required|alpha_num",
                 gender: "alpha",
                 maritalStatus: "alpha",
@@ -68,12 +68,19 @@ class UserController {
             });
 
             if(validator.fails()){
+                console.log(req.file.path);
+                if(req.file) {
+                    fs.unlinkSync(req.file.path);
+                }
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validator.errors.errors));
             }
             const exist = await User.findOne({phone: req.body.phone});
             if(exist){
+                if(req.file) {
+                    fs.unlinkSync(req.file.path);
+                }
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("User already exist with this phone number.", exist));
@@ -83,14 +90,26 @@ class UserController {
                 req.body.image = req.file.path;
             }
             req.body.password = await bcrypt.hash(req.body.password, 12);
-            const newUser = new User({
+            let newUser = new User({
                 ...req.body
             });
-            await newUser.save();
+            newUser = await newUser.save();
+            if(newUser)
+            {
+                return res
+                    .status(ERROR_LIST.HTTP_OK)
+                    .send(ResponseStatus.success("User created Successfully", newUser));
+            }
+            if(req.file) {
+                fs.unlinkSync(req.file.path);
+            }
             return res
-                .status(ERROR_LIST.HTTP_OK)
-                .send(ResponseStatus.success("User created Successfully", newUser));
+                .status(ERROR_LIST.HTTP_ACCEPTED)
+                .send(ResponseStatus.failure("User not created Successfully", {}));
        } catch (err) {
+            if(req.file) {
+                fs.unlinkSync(req.file.path);
+            }
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
@@ -110,12 +129,18 @@ class UserController {
                 password: "min:6",
             });
             if(validator.fails()){
+                if(req.file) {
+                    fs.unlinkSync(req.file.path);
+                }
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validator.errors.errors));
             }
             let user = await User.findById(req.params.id);
             if(!user){
+                if(req.file) {
+                    fs.unlinkSync(req.file.path);
+                }
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("No user found", {}));
@@ -136,6 +161,9 @@ class UserController {
                 .status(ERROR_LIST.HTTP_OK)
                 .send(ResponseStatus.success("User update successfully", user));
         } catch (err) {
+            if(req.file) {
+                fs.unlinkSync(req.file.path);
+            }
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
@@ -235,6 +263,7 @@ class UserController {
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
         }
     }
+
     async unblockUser(req, res, next){
         try {
             let user = await User.findOne({

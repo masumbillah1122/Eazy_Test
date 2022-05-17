@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
         next(null, 'image_'+Date.now()+path.extname(file.originalname));
     }
 });
-maxSize = 10000000;
+maxSize = 100000000;
 const upload = multer({
     storage : storage,
     limits: { fileSize: maxSize },

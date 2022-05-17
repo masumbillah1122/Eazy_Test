@@ -106,6 +106,13 @@ const userSchema = new Schema({
         trim: true,
         default: 'Active',
         enum: ['Active', 'Deactivate']
+    },
+    //
+
+    token: {
+        type: String,
+        trim: true,
+        default: null
     }
 },{
     timestamps: true

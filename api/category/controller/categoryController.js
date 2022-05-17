@@ -56,17 +56,33 @@ class categoryController {
     async create(req, res, next){
         try{
             const validate = new Validator(req.body, {
-                name: "string",
+                name: "string|required",
                 bnName: "string",
-                slug: "string"
+                slug: "string|required"
             });
             if(validate.fails()){
+                if(req.files){
+                    if(req.files["image"]){
+                        fs.unlinkSync(req.files["image"][0].path);
+                    }
+                    if(req.files["banner"]){
+                        fs.unlinkSync(req.files["banner"][0].path);
+                    }
+                }
                 return res
                     .status(ERROR_LIST.HTTP_UNPROCESSABLE_ENTITY)
                     .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_UNPROCESSABLE_ENTITY, validate.errors.errors));
             }
-            const exist = await Category.findOne({name: req.body.name, bnName: req.body.bnName, slug: req.body.slug});
+            const exist = await Category.findOne({ $or: [{slug: req.body.slug}, {name: req.body.name}]});
             if(exist){
+                if(req.files){
+                    if(req.files["image"]){
+                        fs.unlinkSync(req.files["image"][0].path);
+                    }
+                    if(req.files["banner"]){
+                        fs.unlinkSync(req.files["banner"][0].path);
+                    }
+                }
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.success("Category already exist", exist));
@@ -88,10 +104,26 @@ class categoryController {
                     .status(ERROR_LIST.HTTP_OK)
                     .send(ResponseStatus.success("Category created successfully", create));
             }
+            if(req.files){
+                if(req.files["image"]){
+                    fs.unlinkSync(req.files["image"][0].path);
+                }
+                if(req.files["banner"]){
+                    fs.unlinkSync(req.files["banner"][0].path);
+                }
+            }
             return res
                 .status(ERROR_LIST.HTTP_ACCEPTED)
                 .send(ResponseStatus.failure("Category could not be created",{}));
         }catch (err) {
+            if(req.files){
+                if(req.files["image"]){
+                    fs.unlinkSync(req.files["image"][0].path);
+                }
+                if(req.files["banner"]){
+                    fs.unlinkSync(req.files["banner"][0].path);
+                }
+            }
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));
@@ -102,6 +134,14 @@ class categoryController {
         try{
             let existCategory = await Category.findById(req.params.id);
             if(!existCategory){
+                if(req.files){
+                    if(req.files["image"]){
+                        fs.unlinkSync(req.files["image"][0].path);
+                    }
+                    if(req.files["banner"]){
+                        fs.unlinkSync(req.files["banner"][0].path);
+                    }
+                }
                 return res
                     .status(ERROR_LIST.HTTP_ACCEPTED)
                     .send(ResponseStatus.failure("Category dose not  exist", {}));
@@ -128,6 +168,14 @@ class categoryController {
             return  res.status(ERROR_LIST.HTTP_OK)
                 .send(ResponseStatus.success(ERROR_MESSAGE.HTTP_OK, existCategory));
         } catch (err) {
+            if(req.files){
+                if(req.files["image"]){
+                    fs.unlinkSync(req.files["image"][0].path);
+                }
+                if(req.files["banner"]){
+                    fs.unlinkSync(req.files["banner"][0].path);
+                }
+            }
             return res
                 .status(ERROR_LIST.HTTP_INTERNAL_SERVER_ERROR)
                 .send(ResponseStatus.failure(ERROR_MESSAGE.HTTP_INTERNAL_SERVER_ERROR, err));

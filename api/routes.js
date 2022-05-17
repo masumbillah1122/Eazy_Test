@@ -11,8 +11,10 @@ const CategoryRoute = require("./category/routes/index");
 const AdminRoute = require("./admin/routes/index");
 const AuthorRoute = require("./author/Route/index");
 const AuthRoute= require("./Auth/Route/index");
+const AuthController = require("./Auth/Controller/AuthController");
+const CartRoute = require("./Cart/routes/index");
 
-router.use('/users', UserRoute);
+router.use("/Users", UserRoute);
 router.use('/vendor', VendorRoute);
 router.use('/brand', BrandRoute);
 router.use('/product', ProductRoute);
@@ -23,6 +25,7 @@ router.use("/category", CategoryRoute);
 router.use("/admin", AdminRoute);
 router.use("/author", AuthorRoute);
 router.use("/userLogin", AuthRoute);
+router.use("/cart", CartRoute);
 
 
 module.exports = router;
